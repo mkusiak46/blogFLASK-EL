@@ -2,6 +2,7 @@ from flask import Flask, render_template, redirect, url_for, flash, request, sen
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+
 import os
 
 from extensions import db
@@ -21,7 +22,7 @@ login_manager.login_view = 'login'
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 
 # Sprawdź i utwórz katalog uploads, jeśli nie istnieje
@@ -90,16 +91,21 @@ def new_post():
 
 @app.route('/post/<int:post_id>', methods=['GET', 'POST'])
 def post(post_id):
-    post = Post.query.get_or_404(post_id)
+    post = db.session.get(Post, post_id)
     form = CommentForm()
     if form.validate_on_submit():
-        parent_id = form.parent_id.data or None
+        parent_id = request.form.get('parent_id')  # Użyj request.form.get, aby pobrać wartość parent_id
+        if parent_id:
+            parent_id = int(parent_id)
+        else:
+            parent_id = None
         new_comment = Comment(content=form.content.data, author=current_user, post=post, parent_id=parent_id)
         db.session.add(new_comment)
         db.session.commit()
         flash('Your comment has been added!', 'success')
         return redirect(url_for('post', post_id=post.id))
     return render_template('post.html', post=post, form=form)
+
 
 
 @app.route('/uploads/<filename>')
@@ -110,7 +116,7 @@ def uploaded_file(filename):
 @app.route('/post/<int:post_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_post(post_id):
-    post = Post.query.get_or_404(post_id)
+    post = db.session.get(Post, post_id)
     if post.author != current_user:
         flash('You do not have permission to edit this post.', 'danger')
         return redirect(url_for('home'))
@@ -137,7 +143,7 @@ def edit_post(post_id):
 @app.route('/comment/<int:comment_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_comment(comment_id):
-    comment = Comment.query.get_or_404(comment_id)
+    comment = db.session.get(Comment, comment_id)
     if comment.author != current_user:
         flash('You do not have permission to edit this comment.', 'danger')
         return redirect(url_for('home'))
@@ -156,7 +162,7 @@ def edit_comment(comment_id):
 @app.route('/post/<int:post_id>/delete', methods=['POST'])
 @login_required
 def delete_post(post_id):
-    post = Post.query.get_or_404(post_id)
+    post = db.session.get(Post, post_id)
     if post.author != current_user:
         flash('You do not have permission to delete this post.', 'danger')
         return redirect(url_for('home'))

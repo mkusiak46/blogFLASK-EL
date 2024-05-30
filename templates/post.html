@@ -24,6 +24,7 @@
             {% endfor %}
 
             {% if current_user.is_authenticated %}
+                <h3>Add a new comment</h3>
                 <form method="POST">
                     {{ form.hidden_tag() }}
                     <div class="form-group">

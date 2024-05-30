@@ -35,3 +35,14 @@ body {
 .btn-sm {
     margin-top: -5px;
 }
+
+.reply {
+    background-color: #f1f1f1;
+    margin-left: 20px;
+    border-left: 2px solid #ddd;
+}
+
+.reply-form {
+    margin-top: 10px;
+    margin-left: 20px;
+}
