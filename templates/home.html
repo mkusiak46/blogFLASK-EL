@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1 class="my-4">Recent Posts</h1>
+    <div class="row">
+        {% for post in posts %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                {% if post.image_url %}
+                <img src="{{ url_for('uploaded_file', filename=post.image_url) }}" class="card-img-top" alt="Post image">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title"><a href="{{ url_for('post', post_id=post.id) }}">{{ post.title }}</a></h5>
+                    <p class="card-text">{{ post.content[:100] }}...</p>
+                </div>
+                <div class="card-footer text-muted">
+                    Posted by {{ post.author.username }} on {{ post.date_posted.strftime('%Y-%m-%d') }}
+                    {% if current_user == post.author %}
+                        <a href="{{ url_for('edit_post', post_id=post.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+                        <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% endblock %}

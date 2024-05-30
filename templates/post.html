@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="row">
+        <div class="col-lg-8">
+            <h1 class="my-4">{{ post.title }}</h1>
+            <p class="text-muted">by {{ post.author.username }} on {{ post.date_posted.strftime('%Y-%m-%d') }}</p>
+            {% if post.image_url %}
+                <img src="{{ url_for('uploaded_file', filename=post.image_url) }}" alt="Post image" class="img-fluid mb-4">
+            {% endif %}
+            <p>{{ post.content }}</p>
+
+            {% if current_user == post.author %}
+                <a href="{{ url_for('edit_post', post_id=post.id) }}" class="btn btn-secondary">Edit</a>
+                <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            {% endif %}
+
+            <hr>
+
+            <h2>Comments</h2>
+            {% for comment in post.comments %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <p class="card-text">{{ comment.content }}</p>
+                    </div>
+                    <div class="card-footer text-muted">
+                        Posted by {{ comment.author.username }} on {{ comment.date_posted.strftime('%Y-%m-%d') }}
+                        {% if current_user == comment.author %}
+                            <a href="{{ url_for('edit_comment', comment_id=comment.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+
+            {% if current_user.is_authenticated %}
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    <div class="form-group">
+                        {{ form.content.label(class="form-label") }}
+                        {{ form.content(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            {% else %}
+                <p>You need to <a href="{{ url_for('login') }}">login</a> to comment.</p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
