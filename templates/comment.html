@@ -1,8 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title><div class="card mb-4">
+<div class="card mb-4">
     <div class="card-body">
         <p class="card-text">{{ comment.content }}</p>
         {% if current_user == comment.author %}
@@ -17,13 +13,8 @@
     </div>
     <div class="ml-4">
         {% for reply in comment.replies %}
-            {% include 'comment.html' with comment=reply %}
+            {% set comment = reply %}
+            {% include 'comment.html' %}
         {% endfor %}
     </div>
 </div>
-</title>
-</head>
-<body>
-
-</body>
-</html>

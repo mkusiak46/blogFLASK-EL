@@ -18,30 +18,35 @@ db.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
 # Sprawdź i utwórz katalog uploads, jeśli nie istnieje
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
+
 
 @app.route('/')
 def home():
     posts = Post.query.all()
     return render_template('home.html', posts=posts)
 
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        hashed_password = generate_password_hash(form.password.data)  # Użycie domyślnej metody
+        hashed_password = generate_password_hash(form.password.data)
         new_user = User(username=form.username.data, email=form.email.data, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
         flash('Account created!', 'success')
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -55,11 +60,13 @@ def login():
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', form=form)
 
+
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
 
 @app.route('/post/new', methods=['GET', 'POST'])
 @login_required
@@ -80,12 +87,14 @@ def new_post():
         return redirect(url_for('home'))
     return render_template('new_post.html', form=form)
 
+
 @app.route('/post/<int:post_id>', methods=['GET', 'POST'])
 def post(post_id):
     post = Post.query.get_or_404(post_id)
     form = CommentForm()
     if form.validate_on_submit():
-        new_comment = Comment(content=form.content.data, author=current_user, post=post)
+        parent_id = form.parent_id.data or None
+        new_comment = Comment(content=form.content.data, author=current_user, post=post, parent_id=parent_id)
         db.session.add(new_comment)
         db.session.commit()
         flash('Your comment has been added!', 'success')
@@ -93,18 +102,9 @@ def post(post_id):
     return render_template('post.html', post=post, form=form)
 
 
-@app.route('/post/<int:post_id>/delete', methods=['POST'])
-@login_required
-def delete_post(post_id):
-    post = Post.query.get_or_404(post_id)
-    if post.author != current_user:
-        flash('You do not have permission to delete this post.', 'danger')
-        return redirect(url_for('home'))
-
-    db.session.delete(post)
-    db.session.commit()
-    flash('Your post has been deleted!', 'success')
-    return redirect(url_for('home'))
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
 @app.route('/post/<int:post_id>/edit', methods=['GET', 'POST'])
@@ -153,9 +153,19 @@ def edit_comment(comment_id):
     return render_template('edit_comment.html', form=form, comment=comment)
 
 
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+@app.route('/post/<int:post_id>/delete', methods=['POST'])
+@login_required
+def delete_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    if post.author != current_user:
+        flash('You do not have permission to delete this post.', 'danger')
+        return redirect(url_for('home'))
+
+    db.session.delete(post)
+    db.session.commit()
+    flash('Your post has been deleted!', 'success')
+    return redirect(url_for('home'))
+
 
 if __name__ == '__main__':
     with app.app_context():
