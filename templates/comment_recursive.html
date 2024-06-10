@@ -1,4 +1,4 @@
-{% if comment.parent_id is none %}
+
 <div class="card mb-4 {% if comment.parent_id %}reply{% endif %}">
     <div class="card-body">
         <p class="card-text">{{ comment.content }}</p>
@@ -43,4 +43,3 @@ function toggleReplyForm(commentId) {
     }
 }
 </script>
-{% endif %}

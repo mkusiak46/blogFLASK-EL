@@ -92,10 +92,11 @@ def new_post():
 @app.route('/post/<int:post_id>', methods=['GET', 'POST'])
 def post(post_id):
     post = db.session.get(Post, post_id)
+    print(post)
     form = CommentForm()
     if form.validate_on_submit():
         print(request.form)
-        parent_id = request.form.get('parent_id')  # Użyj request.form.get, aby pobrać wartość parent_id
+        parent_id = request.form.get('parent_id_xd')  # Użyj request.form.get, aby pobrać wartość parent_id
         if parent_id:
             parent_id = int(parent_id)
         else:
